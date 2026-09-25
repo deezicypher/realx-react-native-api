@@ -1,0 +1,43 @@
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from "@nestjs/typeorm";
+import {DataSource, DataSourceOptions } from "typeorm";
+import * as dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
+
+
+// How to run migrate
+// pnpm run migration:generate src/db/migrations/InitialMigration
+
+export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = { // used inside  NestJS app for the TypeOrmModule.forRootAsync() call.
+  imports: [ConfigModule],
+  inject: [ConfigService],
+  useFactory: async (configService: ConfigService): Promise<TypeOrmModuleOptions> => ({
+      type: 'postgres',
+      host: configService.get<string>('db_host'),
+      port: configService.get<number>('db_port'),
+      username: configService.get<string>('db_username'),
+      password: configService.get<string>('db_password'),
+      database: configService.get<string>('db_name'),
+      autoLoadEntities: true,
+      synchronize: false,
+      migrations: ["dist/src/db/migrations/*.js"]
+  })
+};
+
+export const dataSourceOptions: DataSourceOptions = { // used outside NestJS, specifically by the TypeORM CLI.
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '3306', 10),
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  entities: [],
+  synchronize: false,
+  migrations: ['dist/src/db/migrations/*.js'],
+};
+
+const dataSource = new DataSource(dataSourceOptions);
+export default dataSource;
+
