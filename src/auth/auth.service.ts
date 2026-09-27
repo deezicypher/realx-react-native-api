@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { AuthProvider, User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateUserDto } from '../users/dto/create-user.dto.js';
@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service.js';
+import { ResendEmailDto } from './dto/resendEmail.dto.js';
+import { ActivateDTO } from './dto/activate.dto.js';
 
 
 @Injectable()
@@ -136,5 +138,50 @@ export class AuthService {
             throw new InternalServerErrorException("Unable to send activation email, at the moment")
         }
         
+    }
+
+    async resendActivation(dto:ResendEmailDto){
+        const user  = await this.usersService.findOneByEmail(dto.email)
+      
+        if(!user){
+            throw new NotFoundException('An activation email has been sent, if this account was registered')
+        }
+
+        if(user?.isEmailVerified){
+        throw new ConflictException('Account has been activated')
+        }
+
+        const payload = {userId:user.id}
+        const activeToken = this.jwtService.sign(payload)
+        const CLIENT_URL = this.configService.get<string>('client_url')
+        const url = `${CLIENT_URL}/verify?token=${activeToken}`
+        try{
+        await this.mailService.sendActivationEmail(user.email,url,user.name)
+        return {
+                msg: `Confirmation Email sent to ${user.email}`,
+                email: user.email,
+        }
+        }catch(error){
+            console.log(error)
+            throw new InternalServerErrorException('Unable to send activation email. Please try again.')
+        }
+        
+    }
+
+    async activate(dto:ActivateDTO):Promise<any>{
+        let payload:any;
+
+        try {
+            payload = this.jwtService.verify(dto.token);
+            const user = await this.usersService.findOne(payload.userId)
+            if(!user){
+                throw new NotFoundException("This user account does not exist")
+            }
+            await this.usersService.activateUser(user)
+            return { msg: 'Account activated successfully' };
+        } catch (error) {
+            throw new UnauthorizedException("Activation token is invalid or expired")
+        }
+
     }
 }

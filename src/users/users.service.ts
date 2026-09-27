@@ -53,6 +53,14 @@ export class UsersService {
     return this.userRepo.save(user);
   }
 
+  activateUser(user:Partial<User>):Promise<User>{
+    if(user.isEmailVerified){
+        throw new ConflictException("User already activated")
+    }
+    user.isEmailVerified = true
+    return this.userRepo.save(user)
+  }
+
   update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }

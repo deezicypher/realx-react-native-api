@@ -2,6 +2,9 @@ import { Body, Controller, Get, Post, Req, Request, UseGuards } from '@nestjs/co
 import { LocalAuthGuard } from './local-auth.guard.js';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { CreateUserDto } from '../users/dto/create-user.dto.js';
+import { ResendEmailDto } from './dto/resendEmail.dto.js';
+import { ActivateDTO } from './dto/activate.dto.js';
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +21,21 @@ export class AuthController {
     @Post('login')
     async login(@Request() req: any){
         return this.authService.login(req.user)
+    }
+
+    @Post('register')
+    register(@Body() dto:CreateUserDto){
+        return this.authService.register(dto)
+    }
+
+    @Post('resend-email')
+    resendActivation(@Body() dto:ResendEmailDto){
+        return this.authService.resendActivation(dto)
+    }
+
+    @Post('activate')
+    activateEmail(@Body() dto: ActivateDTO){
+        return this.authService.activate(dto)
     }
 
     @UseGuards(JwtAuthGuard)
