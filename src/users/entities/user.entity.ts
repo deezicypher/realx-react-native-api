@@ -5,7 +5,7 @@ export enum AuthProvider {
   GOOGLE = 'google',
 }
 
-@Entity()
+@Entity('users')
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id: number;

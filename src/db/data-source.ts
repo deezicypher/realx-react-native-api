@@ -2,9 +2,10 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from "@nestjs/typeorm";
 import {DataSource, DataSourceOptions } from "typeorm";
 import * as dotenv from 'dotenv';
+import { User } from "../users/entities/user.entity.js";
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: `${process.cwd()}/.env.development` });
 
 
 // How to run migrate
@@ -22,20 +23,20 @@ export const typeOrmAsyncConfig: TypeOrmModuleAsyncOptions = { // used inside  N
       database: configService.get<string>('db_name'),
       autoLoadEntities: true,
       synchronize: false,
-      migrations: ["dist/src/db/migrations/*.js"]
+      migrations: ["dist/db/migrations/*.js"]
   })
 };
 
 export const dataSourceOptions: DataSourceOptions = { // used outside NestJS, specifically by the TypeORM CLI.
   type: 'postgres',
   host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '3306', 10),
+  port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [],
+  entities: [User],
   synchronize: false,
-  migrations: ['dist/src/db/migrations/*.js'],
+  migrations: ['dist/db/migrations/*.js'],
 };
 
 const dataSource = new DataSource(dataSourceOptions);
