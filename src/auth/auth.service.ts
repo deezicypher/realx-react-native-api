@@ -10,7 +10,8 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
-    private googleClient: OAuth2Client
+    private googleClient: OAuth2Client;
+    
 
     constructor(
         private usersService: UsersService,
@@ -109,7 +110,8 @@ export class AuthService {
     async login(user:any){
         const payload = {email:user.email, sub: user.id};
         return {
-            access_token: this.jwtService.sign(payload)
+            user,
+            accessToken: this.jwtService.sign(payload)
         }
     }
 
