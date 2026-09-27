@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { AuthProvider, User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
 import { CreateUserDto } from '../users/dto/create-user.dto.js';
@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
+import { MailService } from '../mail/mail.service.js';
 
 
 @Injectable()
@@ -16,7 +17,8 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private jwtService: JwtService,
-        private configService:ConfigService
+        private configService:ConfigService,
+        private mailService:MailService
     ) {
         this.googleClient = new OAuth2Client(
             this.configService.get<string>('GOOGLE_WEB_CLIENT_ID')
@@ -115,7 +117,24 @@ export class AuthService {
         }
     }
 
-    // async register(dto:CreateUserDto): Promise<User>{
+    async register(dto:CreateUserDto): Promise<any>{
+        const savedUser = await this.usersService.create(dto)
+        const payload = {userId:savedUser.id}
+        const activeToken = this.jwtService.sign(payload,{expiresIn:"1h"})
+        const Client_Url = this.configService.get<string>('client_url')
+        const url = `${Client_Url}/verify?token=${activeToken}`
+
+        try {
+            await this.mailService.sendActivationEmail(savedUser.email,url,savedUser.name)
+            return {
+                msg: `Confirmation Email sent to ${dto.email}`,
+                email: savedUser.email,
+            }
+        } catch (error) {
+            console.log(error)
+            await this.usersService.remove(savedUser.id)
+            throw new InternalServerErrorException("Unable to send activation email, at the moment")
+        }
         
-    // }
+    }
 }

@@ -25,6 +25,7 @@
     "migration:revert": "pnpm run build && npx typeorm -d dist/db/data-source.js migration:revert"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.3.7",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.1",
     "@nestjs/core": "^12.0.1",

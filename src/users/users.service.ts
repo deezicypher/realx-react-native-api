@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,8 +14,23 @@ export class UsersService {
   ) {
   }
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  async create(dto: CreateUserDto) {
+    const existingUser = await this.userRepo.findOneBy({email:dto.email})
+    if(existingUser){
+      throw new ConflictException("User with this email already exists")
+    }
+    
+    try{
+      const user = this.userRepo.create({
+        ...dto
+      })
+      this.userRepo.save(user)
+
+      return user
+        }catch(error){
+      console.log(error)
+      throw new InternalServerErrorException('Unable to proceed further at the moment')
+    }
   }
 
   findAll() {
@@ -38,11 +53,11 @@ export class UsersService {
     return this.userRepo.save(user);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: string, updateUserDto: UpdateUserDto) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string) {
+    return this.userRepo.delete(id);
   }
 }
