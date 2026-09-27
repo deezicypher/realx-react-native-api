@@ -37,6 +37,9 @@ class EnvironmentVariables {
     @IsString()
     DB_NAME: string;
 
+    @IsString()
+    GOOGLE_WEB_CLIENT_ID:string;
+
 }
 
 export function validate(config: Record<string, unknown>) {

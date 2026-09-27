@@ -22,7 +22,7 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) : Promise<User | null> {
+  findOne(id: string) : Promise<User | null> {
     return this.userRepo.findOneBy({id});
   }
 
