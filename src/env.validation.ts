@@ -40,6 +40,24 @@ class EnvironmentVariables {
     @IsString()
     GOOGLE_WEB_CLIENT_ID:string;
 
+    @IsString()
+    MAIL_HOST: string;
+
+    @Type(() => Number)
+    MAIL_PORT: number;
+
+    @IsString()
+    MAIL_USER: string;
+
+    @IsString()
+    MAIL_PASS: string;
+
+    @IsString()
+    SENDER_EMAIL: string;
+
+    @IsString()
+    ADMIN_EMAIL: string;
+
 }
 
 export function validate(config: Record<string, unknown>) {

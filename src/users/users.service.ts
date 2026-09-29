@@ -2,8 +2,9 @@ import { ConflictException, Injectable, InternalServerErrorException } from '@ne
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity.js';
+import { AuthProvider, User } from './entities/user.entity.js';
 import { Repository } from 'typeorm';
+import bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -21,12 +22,15 @@ export class UsersService {
     }
     
     try{
-      const user = this.userRepo.create({
-        ...dto
+      const user =  this.userRepo.create({
+        ...dto,
+        password: await bcrypt.hash(dto.password, 12),
+        provider: AuthProvider.LOCAL,
+        isEmailVerified:false
       })
-      this.userRepo.save(user)
 
-      return user
+      return await this.userRepo.save(user)
+
         }catch(error){
       console.log(error)
       throw new InternalServerErrorException('Unable to proceed further at the moment')

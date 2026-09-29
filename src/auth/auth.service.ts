@@ -105,9 +105,15 @@ export class AuthService {
     async validateUser(email: string, pass: string): Promise<any> {
         const user = await this.usersService.findOneByEmail(email);
         if(!user || !user.password) throw new UnauthorizedException('Invalid credentials');
+        if (!user.isEmailVerified) {
+            throw new UnauthorizedException(
+            'Please verify your email before signing in.',
+            );
+        }
         const passwordMatched = await bcrypt.compare(pass, user.password);
         if (!passwordMatched) throw new UnauthorizedException('Invalid credentials');
-
+        
+  
         return user;
     }
 
@@ -173,15 +179,22 @@ export class AuthService {
 
         try {
             payload = this.jwtService.verify(dto.token);
-            const user = await this.usersService.findOne(payload.userId)
-            if(!user){
-                throw new NotFoundException("This user account does not exist")
-            }
-            await this.usersService.activateUser(user)
-            return { msg: 'Account activated successfully' };
         } catch (error) {
             throw new UnauthorizedException("Activation token is invalid or expired")
         }
+
+        const user = await this.usersService.findOne(payload.userId)
+        if(!user){
+            throw new NotFoundException("This user account does not exist")
+        }
+
+        if (user.isEmailVerified) {
+            return {
+            msg: 'Email has already been verified',
+            };
+        }
+        await this.usersService.activateUser(user)
+        return { msg: 'Account activated successfully' };
 
     }
 }

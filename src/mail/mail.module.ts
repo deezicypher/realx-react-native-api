@@ -16,7 +16,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.ad
           port: config.get<number>('mail_port'),
           auth: {
             user: config.get<string>('mail_user'),
-            pass: config.get<string>('mail_pass'),
+            pass: config.get<string>('mail_pass'), 
           },
         },
         defaults:{
