@@ -1,26 +1,58 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAgentDto } from './dto/create-agent.dto.js';
 import { UpdateAgentDto } from './dto/update-agent.dto.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Agent } from './entities/agent.entity.js';
+import { Repository } from 'typeorm/browser/repository/Repository.js';
 
 @Injectable()
 export class AgentsService {
-  create(createAgentDto: CreateAgentDto) {
-    return 'This action adds a new agent';
+  
+  constructor(
+    @InjectRepository(Agent)
+    private agentRepo: Repository<Agent>
+  ) {}
+
+  async create(dto: CreateAgentDto) {
+    const existingAgent = await this.agentRepo.findOne({ where: { email: dto.email } });
+    if (existingAgent) {
+      throw new Error('Agent with this email already exists');
+    }
+    const agent = this.agentRepo.create(dto);
+    return this.agentRepo.save(agent);
   }
 
   findAll() {
-    return `This action returns all agents`;
+    return this.agentRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} agent`;
+  async findOne(id: string) {
+    const agent = await this.agentRepo.findOne({ where: { id } });
+    if(!agent) {
+      throw new Error('Agent not found');
+    }
+    return agent;
   }
 
-  update(id: number, updateAgentDto: UpdateAgentDto) {
-    return `This action updates a #${id} agent`;
+  async update(id: string, dto: UpdateAgentDto, user:any) {
+    const agent = await this.agentRepo.findOne({ where: { id } });
+    if(!agent) {
+      throw new Error('Agent not found');
+    }
+    if(agent.id !== user.id) {
+      throw new Error('Unauthorized');
+    }
+    return this.agentRepo.update(id, dto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} agent`;
+  async remove(id: string, user:any) {
+    const agent = await this.agentRepo.findOne({ where: { id } });
+    if(!agent) {
+      throw new Error('Agent not found');
+    }
+    if(agent.id !== user.id) {
+      throw new Error('Unauthorized');
+    }
+    return this.agentRepo.delete(id);
   }
 }

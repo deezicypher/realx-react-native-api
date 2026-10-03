@@ -23,8 +23,12 @@ export class PropertiesService {
     return this.propertyRepo.find();
   }
 
-  findOne(id: string) {
-    return this.propertyRepo.findOne({ where: { id } });
+  async findOne(id: string) {
+    const property = await this.propertyRepo.findOne({ where: { id } });
+    if(!property) {
+      throw new NotFoundException('Property not found');
+    }
+    return property;
   }
 
   async update(id: string, dto: UpdatePropertyDto, user: any) {
