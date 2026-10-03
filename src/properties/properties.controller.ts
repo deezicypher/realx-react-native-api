@@ -30,12 +30,12 @@ export class PropertiesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto, @Req() req: Request) {
-    return this.propertiesService.update(id, updatePropertyDto, req);
+  async update(@Param('id') id: string, @Body() updatePropertyDto: UpdatePropertyDto, @Req() req: any) {
+    return this.propertiesService.update(id, updatePropertyDto, req.user);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.propertiesService.remove(id);
+  async remove(@Param('id') id: string, @Req() req: any) {
+    return this.propertiesService.remove(id, req.user);
   }
 }
