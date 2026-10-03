@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique, UpdateDateColumn, OneToOne, OneToMany } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique, UpdateDateColumn, OneToOne, OneToMany, Relation } from "typeorm";
 import { Agent } from "../../agents/entities/agent.entity.js";
 import { Review } from "../../reviews/entities/review.entity.js";
 
@@ -42,7 +42,7 @@ export class User {
     agent: Agent[];
 
     @OneToMany(() => Review, review => review.user)
-    reviews: Review[];
+    reviews: Relation<Review>[];
 
     @CreateDateColumn()
     createdAt: Date;

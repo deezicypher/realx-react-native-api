@@ -1,6 +1,4 @@
-import { IsNotEmpty } from "class-validator/types/decorator/common/IsNotEmpty.js";
-import { IsEmail } from "class-validator/types/decorator/string/IsEmail.js";
-import { IsString } from "class-validator/types/decorator/typechecker/IsString.js";
+import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 
 export class CreateAgentDto {
     @IsString()

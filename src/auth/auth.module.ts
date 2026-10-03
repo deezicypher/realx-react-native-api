@@ -9,6 +9,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy.js';
 import { MailModule } from '../mail/mail.module.js';
 
+
 @Module({
   imports: [UsersModule, PassportModule.register({ defaultStrategy: 'local' }), 
     JwtModule.registerAsync({

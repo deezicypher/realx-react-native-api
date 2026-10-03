@@ -13,7 +13,9 @@ import { MailModule } from './mail/mail.module.js';
 import { PropertiesModule } from './properties/properties.module.js';
 import { AgentsModule } from './agents/agents.module.js';
 import { ReviewsModule } from './reviews/reviews.module.js';
-import { AgentsModule } from './agents/agents.module.js';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/jwt-auth.guard.js';
+
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -44,6 +46,11 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     ReviewsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+        {
+          provide: APP_GUARD,
+          useClass: JwtAuthGuard
+        }
+  ],
 })
 export class AppModule {}

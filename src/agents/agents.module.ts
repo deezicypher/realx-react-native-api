@@ -3,9 +3,12 @@ import { AgentsService } from './agents.service.js';
 import { AgentsController } from './agents.controller.js';
 import { Agent } from './entities/agent.entity.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Agent])],
+  imports: [
+    // PassportModule.register({ defaultStrategy: 'jwt' }), 
+    TypeOrmModule.forFeature([Agent])],
   controllers: [AgentsController],
   providers: [AgentsService],
 })

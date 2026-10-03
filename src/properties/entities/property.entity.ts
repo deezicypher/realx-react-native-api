@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import type { Relation } from "typeorm";
 import { Agent } from "../../agents/entities/agent.entity.js";
 import { Review } from "../../reviews/entities/review.entity.js";
 
@@ -60,7 +61,7 @@ export class Property {
     @Column()
     image: string;
 
-    @Column()
+    @Column({ type: "text", array: true, default: [] })
     galleries: string[];
 
     @Column()
@@ -68,10 +69,10 @@ export class Property {
 
     @ManyToOne(() => Agent, agent => agent.properties,{onDelete:"CASCADE"})
     @JoinColumn()
-    agent: Agent;
+    agent: Relation<Agent>;
 
     @OneToMany(() => Review, review => review.property)
-    reviews: Review[];
+    reviews: Relation<Review>[];
 
     @CreateDateColumn()
     createdAt: Date;

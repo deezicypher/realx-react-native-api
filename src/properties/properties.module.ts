@@ -3,9 +3,12 @@ import { PropertiesService } from './properties.service.js';
 import { PropertiesController } from './properties.controller.js';
 import { Property } from './entities/property.entity.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { PassportModule } from '@nestjs/passport';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Property])],
+  imports: [
+    // PassportModule.register({ defaultStrategy: 'jwt' }), 
+    TypeOrmModule.forFeature([Property])],
   controllers: [PropertiesController],
   providers: [PropertiesService],
   exports: [PropertiesService]

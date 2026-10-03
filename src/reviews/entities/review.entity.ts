@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import type { Relation } from "typeorm";
 import { Property } from "../../properties/entities/property.entity.js";
 import { User } from "../../users/entities/user.entity.js";
 
@@ -22,11 +23,11 @@ export class Review {
 
     @ManyToOne(() => Property, property => property.reviews,{onDelete:"CASCADE"})
     @JoinColumn()
-    property: Property;
+    property: Relation<Property>;
 
     @ManyToOne(() => User, user => user.reviews,{onDelete:"CASCADE"})
     @JoinColumn()
-    user: User;
+    user: Relation<User>;
 
     @CreateDateColumn()
     createdAt: Date;

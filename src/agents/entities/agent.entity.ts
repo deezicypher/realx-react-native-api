@@ -1,4 +1,5 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import type { Relation } from "typeorm";
 import { Property } from "../../properties/entities/property.entity.js";
 import { User } from "../../users/entities/user.entity.js";
 
@@ -17,11 +18,11 @@ export class Agent {
     avatar: string;
 
     @OneToMany(() => Property, property => property.agent)
-    properties: Property[];
+    properties: Relation<Property>[];
 
     @ManyToOne(() => User, user => user.agent, {onDelete:"CASCADE"})
     @JoinColumn()
-    user: User;
+    user: Relation<User>;
 
     @CreateDateColumn()
     createdAt: Date;

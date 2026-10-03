@@ -76,7 +76,7 @@ export class UsersService {
     return this.userRepo.update(id, dto);
   }
 
-  async remove(id: string,req:any) {
+  async remove(id: string,req?:any) {
     const user = await this.userRepo.findOneBy({id});
     if(!user) {
       throw new Error('User not found');

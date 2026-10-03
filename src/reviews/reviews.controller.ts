@@ -2,38 +2,32 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } fro
 import { ReviewsService } from './reviews.service.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { UpdateReviewDto } from './dto/update-review.dto.js';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard.js';
 
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   create(@Body() createReviewDto: CreateReviewDto) {
     return this.reviewsService.create(createReviewDto);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard)
   findAll() {
     return this.reviewsService.findAll();
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string) {
     return this.reviewsService.findOne(id);
   }
 
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard)  
+  @Patch(':id')  
   update(@Param('id') id: string, @Body() updateReviewDto: UpdateReviewDto, @Req() req: any) {
     return this.reviewsService.update(id, updateReviewDto, req.user);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string, @Req() req: any) {
     return this.reviewsService.remove(id, req.user);
   }
