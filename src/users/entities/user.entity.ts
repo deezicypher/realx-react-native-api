@@ -1,4 +1,6 @@
-import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique, UpdateDateColumn, OneToOne, OneToMany } from "typeorm";
+import { Agent } from "../../agents/entities/agent.entity.js";
+import { Review } from "../../reviews/entities/review.entity.js";
 
 export enum AuthProvider {
   LOCAL = 'local',
@@ -35,6 +37,12 @@ export class User {
 
     @Column({ type: 'varchar',nullable: true})
     photo: string|null;
+
+    @OneToMany(() => Agent, agent => agent.user)
+    agent: Agent[];
+
+    @OneToMany(() => Review, review => review.user)
+    reviews: Review[];
 
     @CreateDateColumn()
     createdAt: Date;

@@ -16,4 +16,8 @@ export class CreateAgentDto {
     @IsNotEmpty()
     avatar: string;
 
+    @IsString()
+    @IsNotEmpty()
+    userId: string;
+
 }
