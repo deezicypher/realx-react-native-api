@@ -10,6 +10,10 @@ import { AuthModule } from './auth/auth.module.js';
 import { typeOrmAsyncConfig } from './db/data-source.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from './mail/mail.module.js';
+import { PropertiesModule } from './properties/properties.module.js';
+import { AgentsModule } from './agents/agents.module.js';
+import { ReviewsModule } from './reviews/reviews.module.js';
+import { AgentsModule } from './agents/agents.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -35,6 +39,9 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     UsersModule,
     AuthModule,
     MailModule,
+    PropertiesModule,
+    AgentsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

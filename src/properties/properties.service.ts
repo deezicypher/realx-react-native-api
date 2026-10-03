@@ -1,26 +1,51 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Property } from './entities/property.entity.js';
+import { Repository } from 'typeorm/browser/repository/Repository.js';
 
 @Injectable()
 export class PropertiesService {
-  create(createPropertyDto: CreatePropertyDto) {
-    return 'This action adds a new property';
+
+  constructor(
+    @InjectRepository(Property)
+    private propertyRepo: Repository<Property> 
+  ) {}
+
+
+  create(dto: CreatePropertyDto) {
+    const property = this.propertyRepo.create(dto);
+    return this.propertyRepo.save(property);
   }
 
   findAll() {
-    return `This action returns all properties`;
+    return this.propertyRepo.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} property`;
+  findOne(id: string) {
+    return this.propertyRepo.findOne({ where: { id } });
   }
 
-  update(id: number, updatePropertyDto: UpdatePropertyDto) {
-    return `This action updates a #${id} property`;
+  async update(id: string, dto: UpdatePropertyDto, user: any) {
+    const property = await this.propertyRepo.findOne({ where: { id } });
+    if(!property) {
+      throw new NotFoundException('Property not found');
+    }
+    if(user.id !== property.agent.id) {
+      throw new UnauthorizedException();
+    }
+    return this.propertyRepo.update(id, dto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} property`;
+  async remove(id: string, user: any) {
+    const property = await this.propertyRepo.findOne({ where: { id } });
+    if(!property) {
+      throw new NotFoundException('Property not found');
+    }
+    if(user.id !== property.agent.id) {
+      throw new UnauthorizedException();
+    }
+    return this.propertyRepo.delete(id);
   }
 }
