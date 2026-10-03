@@ -65,11 +65,25 @@ export class UsersService {
     return this.userRepo.save(user)
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, dto: UpdateUserDto, req:any) {
+    const user = await this.userRepo.findOneBy({id});
+    if(!user) {
+      throw new Error('User not found');
+    }
+    if(user.id !== req.user.id) {
+      throw new Error('Unauthorized');
+    }
+    return this.userRepo.update(id, dto);
   }
 
-  remove(id: string) {
+  async remove(id: string,req:any) {
+    const user = await this.userRepo.findOneBy({id});
+    if(!user) {
+      throw new Error('User not found');
+    }
+    if(user.id !== req.user.id) {
+      throw new Error('Unauthorized');
+    }
     return this.userRepo.delete(id);
   }
 }
