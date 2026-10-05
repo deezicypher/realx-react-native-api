@@ -24,7 +24,6 @@ export class PropertiesService {
   }
 
   search(query?: string, filter?: string, limit?: number) {
-    console.log('Searching properties with query:', query, 'filter:', filter, 'limit:', limit);
     const normalizedFilter = filter?.trim().toLowerCase();
     if (normalizedFilter === 'all') {
       return this.findAll();
