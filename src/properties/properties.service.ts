@@ -25,7 +25,7 @@ export class PropertiesService {
 
   search(query?: string, filter?: string, limit?: number) {
     const normalizedFilter = filter?.trim().toLowerCase();
-    if (normalizedFilter === 'all') {
+    if (normalizedFilter === 'all' && !query) {
       return this.findAll();
     }
 
@@ -53,7 +53,7 @@ export class PropertiesService {
       });
     }
 
-    if (filter) {
+    if (filter && !query) {
 
       queryBuilder.andWhere('property.type = :filter', { filter });
     }
