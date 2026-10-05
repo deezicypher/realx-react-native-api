@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { PropertiesService } from './properties.service.js';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
@@ -15,6 +15,20 @@ export class PropertiesController {
   @Get()
   findAll() {
     return this.propertiesService.findAll();
+  }
+
+
+  @Get('search')
+  search(
+    @Query('query') query?: string,
+    @Query('filter') filter?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.propertiesService.search(
+      query,
+      filter,
+      limit === undefined ? undefined : Number(limit),
+    );
   }
 
   @Get(':id')

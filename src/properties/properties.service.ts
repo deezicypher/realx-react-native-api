@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Property } from './entities/property.entity.js';
+import { Property, PropertyType } from './entities/property.entity.js';
 import { Repository } from 'typeorm/browser/repository/Repository.js';
 
 @Injectable()
@@ -21,6 +21,49 @@ export class PropertiesService {
 
   findAll() {
     return this.propertyRepo.find({order: { createdAt: 'DESC' }, relations: { agent: true, reviews:true } });
+  }
+
+  search(query?: string, filter?: string, limit?: number) {
+    console.log('Searching properties with query:', query, 'filter:', filter, 'limit:', limit);
+    const normalizedFilter = filter?.trim().toLowerCase();
+    if (normalizedFilter === 'all') {
+      return this.findAll();
+    }
+
+    // const propertyType = normalizedFilter
+    //   ? Object.values(PropertyType).find((type) => {
+    //       const normalizedType = type.toLowerCase();
+    //       return [normalizedType, `${normalizedType}s`, `${normalizedType}es`].includes(normalizedFilter);
+    //     })
+    //   : undefined;
+
+    // if (normalizedFilter && !propertyType) {
+    //   throw new BadRequestException(`Invalid property type filter: ${filter}`);
+    // }
+
+    const queryBuilder = this.propertyRepo
+      .createQueryBuilder('property')
+      .leftJoinAndSelect('property.agent', 'agent')
+      .leftJoinAndSelect('property.reviews', 'reviews')
+      .orderBy('property.createdAt', 'DESC');
+
+    const normalizedQuery = query?.trim();
+    if (normalizedQuery && !['undefined', 'null'].includes(normalizedQuery.toLowerCase())) {
+      queryBuilder.andWhere('property.name ILIKE :query', {
+        query: `%${normalizedQuery}%`,
+      });
+    }
+
+    if (filter) {
+
+      queryBuilder.andWhere('property.type = :filter', { filter });
+    }
+
+    if (limit !== undefined && Number.isFinite(limit) && limit > 0) {
+      queryBuilder.take(Math.floor(limit));
+    }
+
+    return queryBuilder.getMany();
   }
 
   async findOne(id: string) {
