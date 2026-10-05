@@ -67,6 +67,9 @@ export class Property {
     @Column()
     geolocation: string;
 
+    @Column({nullable:true, type:"decimal", default:0, precision: 3, scale: 2})
+    rating: number;
+
     @ManyToOne(() => Agent, agent => agent.properties,{onDelete:"CASCADE"})
     @JoinColumn()
     agent: Relation<Agent>;

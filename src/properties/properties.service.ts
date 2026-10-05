@@ -20,7 +20,7 @@ export class PropertiesService {
   }
 
   findAll() {
-    return this.propertyRepo.find();
+    return this.propertyRepo.find({order: { createdAt: 'DESC' }, relations: { agent: true, reviews:true } });
   }
 
   async findOne(id: string) {

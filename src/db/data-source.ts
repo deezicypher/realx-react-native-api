@@ -3,6 +3,9 @@ import { TypeOrmModuleAsyncOptions, TypeOrmModuleOptions } from "@nestjs/typeorm
 import {DataSource, DataSourceOptions } from "typeorm";
 import * as dotenv from 'dotenv';
 import { User } from "../users/entities/user.entity.js";
+import { Review } from "../reviews/entities/review.entity.js";
+import { Property } from "../properties/entities/property.entity.js";
+import { Agent } from "../agents/entities/agent.entity.js";
 
 // Load environment variables
 dotenv.config({ path: `${process.cwd()}/.env.development` });
@@ -34,7 +37,7 @@ export const dataSourceOptions: DataSourceOptions = { // used outside NestJS, sp
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User],
+  entities: [User, Agent, Property, Review],
   synchronize: false,
   migrations: ['dist/db/migrations/*.js'],
 };
