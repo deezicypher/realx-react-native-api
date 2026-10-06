@@ -24,8 +24,9 @@ export class PropertiesService {
   }
 
   search(query?: string, filter?: string, limit?: number) {
+    console.log('Search parameters:', { query, filter, limit });
     const normalizedFilter = filter?.trim().toLowerCase();
-    if (normalizedFilter === 'all' && !query) {
+    if (normalizedFilter === 'all' && (!query || query=== 'undefined' || query === 'null')) {
       return this.findAll();
     }
 
@@ -53,8 +54,7 @@ export class PropertiesService {
       });
     }
 
-    if (filter && !query) {
-
+    if (filter && (query === 'undefined' || query === 'null' || !query)) {
       queryBuilder.andWhere('property.type = :filter', { filter });
     }
 
