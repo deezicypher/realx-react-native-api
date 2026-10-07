@@ -20,13 +20,13 @@ export class PropertiesService {
   }
 
   findAll() {
-    return this.propertyRepo.find({order: { createdAt: 'DESC' }, relations: { agent: true, reviews:true } });
+    return this.propertyRepo.find({order: { createdAt: 'DESC' }});
   }
 
   search(query?: string, filter?: string, limit?: number) {
-    console.log('Search parameters:', { query, filter, limit });
+   
     const normalizedFilter = filter?.trim().toLowerCase();
-    if (normalizedFilter === 'all' && (!query || query=== 'undefined' || query === 'null')) {
+    if ((normalizedFilter === 'all' || normalizedFilter === 'undefined' ) && (!query || query=== 'undefined' || query === 'null')) {
       return this.findAll();
     }
 
