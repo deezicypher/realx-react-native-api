@@ -9,7 +9,10 @@ import { ConfigService } from '@nestjs/config';
 import { MailService } from '../mail/mail.service.js';
 import { ResendEmailDto } from './dto/resendEmail.dto.js';
 import { ActivateDTO } from './dto/activate.dto.js';
-
+import { randomBytes, createHash, randomUUID } from 'crypto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { RefreshToken } from './entities/refresh-token.entity.js';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -20,12 +23,126 @@ export class AuthService {
         private usersService: UsersService,
         private jwtService: JwtService,
         private configService:ConfigService,
-        private mailService:MailService
+        private mailService:MailService,
+        @InjectRepository(RefreshToken)
+        private refreshTokenRepo: Repository<RefreshToken>
     ) {
         this.googleClient = new OAuth2Client(
             this.configService.get<string>('GOOGLE_WEB_CLIENT_ID')
         );
     }
+
+    private generateRefreshToken(): string {
+        return randomBytes(64).toString('base64url');
+    }
+
+    private hashRefreshToken(token: string): string {
+        return createHash('sha256')
+            .update(token)
+            .digest('hex');
+    }
+
+    private async revokeFamily(familyId: string): Promise<void> {
+        await this.refreshTokenRepo.update(
+            { familyId },
+            {
+            revokedAt: new Date(),
+            },
+        );
+    }
+
+    private async revokeToken(tokenHash: string): Promise<void> {
+        await this.refreshTokenRepo.update(
+            { tokenHash },
+            {
+            revokedAt: new Date(),
+            },
+        );
+    
+    }
+            
+    async createTokenPair(user: User) {
+        const accessToken = this.jwtService.sign({
+            sub: user.id,
+            email: user.email,
+        });
+        const refreshToken = this.generateRefreshToken();
+        const tokenHash = this.hashRefreshToken(refreshToken);
+
+        const familyId = randomUUID();
+
+        const expiresAt = new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+        );
+
+        const familyExpiresAt = new Date(
+            Date.now() + 90 * 24 * 60 * 60 * 1000,
+        );
+
+        const refreshTokenEntity = this.refreshTokenRepo.create({
+        tokenHash,
+        userId: user.id,
+        familyId,
+        expiresAt,
+        familyExpiresAt,
+        });
+
+        await this.refreshTokenRepo.save(refreshTokenEntity);
+
+
+        return {
+            accessToken,
+            refreshToken,
+            expiresIn: 900,
+        };
+    }
+
+    private async createRotatedTokenPair(
+        user: User,
+        familyId: string,
+        familyExpiresAt: Date,
+        ) {
+        // Create a new short-lived access token
+        const accessToken = this.jwtService.sign(
+            {
+            sub: user.id,
+            email: user.email,
+            }
+        );
+
+        // Generate a completely new refresh token
+        const refreshToken = this.generateRefreshToken();
+
+        // Store only the hash
+        const tokenHash = this.hashRefreshToken(refreshToken);
+
+        // This particular refresh token gets a new 30-day expiration
+        const expiresAt = new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+        );
+
+        // IMPORTANT:
+        // Do NOT create a new familyId.
+        // Do NOT create a new familyExpiresAt.
+        //
+        // We keep the values from the previous token.
+
+        const refreshTokenEntity = this.refreshTokenRepo.create({
+            tokenHash,
+            userId: user.id,
+            familyId,
+            expiresAt,
+            familyExpiresAt,
+        });
+
+        await this.refreshTokenRepo.save(refreshTokenEntity);
+
+        return {
+            accessToken,
+            refreshToken,
+            user,
+        };
+        }
 
     async googleLogin(idToken: string) {
     
@@ -54,15 +171,11 @@ export class AuthService {
             photo: payload.picture ?? null,
         });
 
-        
-        const accessToken = this.jwtService.sign({
-            sub: user.id,
-            email: user.email,
-        });
-
+        const tokens = await this.createTokenPair(user)
+       
         return {
-            accessToken,
             user,
+            ...tokens
         };
         }
     
@@ -118,10 +231,10 @@ export class AuthService {
     }
 
     async login(user:any){
-        const payload = {email:user.email, sub: user.id};
+        const tokens = await this.createTokenPair(user)
         return {
             user,
-            accessToken: this.jwtService.sign(payload)
+            ...tokens
         }
     }
 
@@ -145,6 +258,68 @@ export class AuthService {
         }
         
     }
+
+    async refresh(rawToken: string) {
+        const tokenHash = this.hashRefreshToken(rawToken);
+
+        const storedToken = await this.refreshTokenRepo.findOne({
+            where: { tokenHash },
+        });
+
+        if (!storedToken) {
+            throw new UnauthorizedException('Invalid refresh token');
+        }
+
+        if (storedToken.revokedAt) {
+            // token reuse detected
+            await this.revokeFamily(storedToken.familyId);
+
+            throw new UnauthorizedException('Refresh token reuse detected');
+        }
+
+        if (storedToken.usedAt) {
+            // token reuse detected
+            await this.revokeFamily(storedToken.familyId);
+
+            throw new UnauthorizedException('Refresh token reuse detected');
+        }
+
+        if (storedToken.expiresAt < new Date()) {
+            throw new UnauthorizedException('Refresh token expired');
+        }
+
+        if (storedToken.familyExpiresAt < new Date()) {
+            await this.revokeFamily(storedToken.familyId);
+
+            throw new UnauthorizedException('Session expired');
+        }
+
+        // mark old token used
+        storedToken.usedAt = new Date();
+
+        await this.refreshTokenRepo.save(storedToken);
+
+        const user = await this.usersService.findOne(
+            storedToken.userId,
+        );
+
+        if (!user) {
+            throw new UnauthorizedException();
+        }
+
+        return this.createRotatedTokenPair(
+            user,
+            storedToken.familyId,
+            storedToken.familyExpiresAt,
+        );
+    }
+
+    async logout(refreshToken: string): Promise<void> {
+        const tokenHash = this.hashRefreshToken(refreshToken);
+
+        await this.revokeToken(tokenHash);
+    }
+
 
     async resendActivation(dto:ResendEmailDto){
         const user  = await this.usersService.findOneByEmail(dto.email)

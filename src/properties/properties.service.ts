@@ -66,10 +66,11 @@ export class PropertiesService {
   }
 
   async findOne(id: string) {
-    const property = await this.propertyRepo.findOne({ where: { id } });
+    const property = await this.propertyRepo.findOne({ where: { id } , relations:{reviews:true,agent:true}});
     if(!property) {
       throw new NotFoundException('Property not found');
     }
+    console.log(property)
     return property;
   }
 

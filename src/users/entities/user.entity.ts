@@ -1,6 +1,7 @@
 import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, Unique, UpdateDateColumn, OneToOne, OneToMany, Relation } from "typeorm";
 import { Agent } from "../../agents/entities/agent.entity.js";
 import { Review } from "../../reviews/entities/review.entity.js";
+import type { RefreshToken } from "../../auth/entities/refresh-token.entity.js";
 
 export enum AuthProvider {
   LOCAL = 'local',
@@ -37,6 +38,9 @@ export class User {
 
     @Column({ type: 'varchar',nullable: true})
     photo: string|null;
+
+    @OneToMany('RefreshToken', (refreshToken: RefreshToken) => refreshToken.user)
+    refreshTokens: Relation<RefreshToken>[];
 
     @OneToMany(() => Agent, agent => agent.user)
     agent: Agent[];
