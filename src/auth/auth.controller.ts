@@ -45,8 +45,10 @@ export class AuthController {
         return this.authService.activate(dto)
     }
 
+    @Public()
     @Post('refresh')
     async refresh(@Body('refreshToken') refreshToken: string) {
+        console.log(refreshToken)
         return this.authService.refresh(refreshToken);
     }
     

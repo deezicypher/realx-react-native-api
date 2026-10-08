@@ -70,7 +70,7 @@ export class PropertiesService {
     if(!property) {
       throw new NotFoundException('Property not found');
     }
-    console.log(property)
+
     return property;
   }
 
